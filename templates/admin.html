@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel de gestion docente para la Semana Deportiva de la U.E.P. Teresiano La Castellana.">
+    <title>Panel Administrativo — U.E.P. Teresiano La Castellana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              navy: {
+                50: '#f0f4f8',
+                100: '#d9e2ec',
+                200: '#bcccdc',
+                300: '#9fb3c8',
+                400: '#829ab1',
+                500: '#627d98',
+                600: '#486581',
+                700: '#334e68',
+                800: '#1e3a5f',
+                900: '#102a43',
+              }
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-navy-800 selection:text-white">
+
+    <!-- TOP NAVBAR -->
+    <header class="no-print sticky top-0 z-40 backdrop-blur-md bg-white/95 border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand & Info -->
+            <div class="flex items-center gap-3">
+                <a href="/admin" class="flex items-center gap-3 group" id="admin-nav-home">
+                    <div class="w-10 h-10 rounded-lg bg-navy-800 flex items-center justify-center text-white shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight tracking-tight">
+                                Panel Docente
+                            </h1>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                Gestión 2026
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            U.E.P. Teresiano La Castellana
+                        </p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                    <span>Profesor: <strong>{{ usuario_actual }}</strong></span>
+                </div>
+
+                <a href="/" target="_blank" id="admin-nav-portal"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    <span>Portal Público</span>
+                </a>
+
+                <a href="/logout" id="admin-nav-logout"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Salir</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-2 no-print" id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-lg border flex items-center justify-between transition-all shadow-sm
+                            {% if category == 'success' %}
+                                bg-emerald-50 border-emerald-200 text-emerald-800
+                            {% elif category == 'error' %}
+                                bg-rose-50 border-rose-200 text-rose-800
+                            {% else %}
+                                bg-blue-50 border-blue-200 text-blue-800
+                            {% endif %}">
+                            <div class="flex items-center gap-3 text-sm font-medium">
+                                <span class="shrink-0">
+                                    {% if category == 'success' %}
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {% elif category == 'error' %}
+                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    {% else %}
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    {% endif %}
+                                </span>
+                                <span class="text-xs sm:text-sm">{{ message }}</span>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 text-sm ml-3 shrink-0">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- DASHBOARD HEADER & STATS -->
+        <section class="mb-8 no-print">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Centro de Control
+                    </h2>
+                    <p class="text-slate-500 text-sm mt-1">
+                        Supervisa inscripciones y organiza el cronograma oficial de partidos.
+                    </p>
+                </div>
+
+                <!-- TABS SWITCHER -->
+                <div class="no-print inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200" id="tab-bar">
+                    <button id="tab-btn-inscritos" onclick="cambiarPestana('inscritos')"
+                            class="px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 {% if tab_activa == 'cronograma' %}text-slate-600 hover:text-slate-900{% else %}shadow-sm bg-white text-slate-900{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Inscripciones ({{ total }})
+                    </button>
+                    <button id="tab-btn-cronograma" onclick="cambiarPestana('cronograma')"
+                            class="px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 {% if tab_activa == 'cronograma' %}shadow-sm bg-white text-slate-900{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Cronograma ({{ cronograma|length }})
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI STATS CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Inscritos -->
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-slate-300 transition-all" id="stat-total-inscritos">
+                    <div class="flex items-center justify-between text-slate-500 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider">Total Inscritos</span>
+                        <div class="w-8 h-8 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold text-slate-900">{{ total }}</div>
+                    <div class="text-xs text-slate-500 mt-1">Estudiantes registrados</div>
+                </div>
+
+                <!-- Card 2: Deporte Mas Popular -->
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-slate-300 transition-all" id="stat-top-deporte">
+                    <div class="flex items-center justify-between text-slate-500 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider">Más Popular</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-xl sm:text-2xl font-extrabold text-slate-900 truncate" title="{{ top_deporte }}">{{ top_deporte }}</div>
+                    <div class="text-xs text-slate-500 mt-1">{{ top_deporte_count }} inscritos registrados</div>
+                </div>
+
+                <!-- Card 3: Cupos Disponibles -->
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-slate-300 transition-all" id="stat-cupos">
+                    <div class="flex items-center justify-between text-slate-500 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider">Cupos Disponibles</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold text-emerald-600">{{ cupos_restantes }}</div>
+                    <div class="text-xs text-slate-500 mt-1">De {{ total_capacidad }} plazas totales</div>
+                </div>
+
+                <!-- Card 4: Partidos Oficiales -->
+                <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-slate-300 transition-all" id="stat-partidos">
+                    <div class="flex items-center justify-between text-slate-500 mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider">Partidos Oficiales</span>
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-extrabold text-indigo-600">{{ cronograma|length }}</div>
+                    <div class="text-xs text-slate-500 mt-1">Bloques programados en la semana</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- PESTANA 1: GESTION DE INSCRIPCIONES                       -->
+        <!-- ======================================================== -->
+        <section id="seccion-inscritos" class="space-y-6 {% if tab_activa == 'cronograma' %}hidden{% endif %}">
+            <!-- Toolbar -->
+            <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm no-print">
+                <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+                    <!-- Filters -->
+                    <div class="flex flex-col sm:flex-row gap-3 flex-1">
+                        <!-- Search -->
+                        <div class="relative flex-1">
+                            <input type="text" id="busqueda" onkeyup="filtrarTabla()"
+                                   placeholder="Buscar por nombre, cedula o deporte..."
+                                   class="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 transition-all">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
+                        <!-- Deporte Filter -->
+                        <select id="filtro-deporte" onchange="filtrarTabla()"
+                                class="px-3 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-700 transition-all">
+                            <option value="">Todas las Disciplinas</option>
+                            {% for dep in deportes %}
+                                <option value="{{ dep }}">{{ dep }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <!-- Nivel Filter -->
+                        <select id="filtro-nivel" onchange="filtrarTabla()"
+                                class="px-3 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-700 transition-all">
+                            <option value="">Todos los Grados / Anos</option>
+                            {% for niv in niveles %}
+                                <option value="{{ niv }}">{{ niv }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <a href="/admin/exportar" id="btn-export-csv"
+                           class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.5L19 7.5V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Descargar CSV</span>
+                        </a>
+
+                        <button onclick="window.print()" id="btn-print-inscriptions"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-white bg-navy-800 hover:bg-navy-900 rounded-lg transition-all shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>Imprimir</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Inscritos -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden print-table">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm" id="tabla-estudiantes">
+                        <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="py-3.5 px-4">#</th>
+                                <th class="py-3.5 px-4">Estudiante</th>
+                                <th class="py-3.5 px-4">Cédula</th>
+                                <th class="py-3.5 px-4">Grado / Nivel</th>
+                                <th class="py-3.5 px-4">Disciplina</th>
+                                <th class="py-3.5 px-4">Fecha Registro</th>
+                                <th class="py-3.5 px-4 text-right no-print">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                            {% for fila in lista %}
+                            <tr class="hover:bg-slate-50/80 transition-colors fila-dato"
+                                data-nombre="{{ fila['nombre']|lower }}"
+                                data-cedula="{{ fila['cedula']|lower }}"
+                                data-deporte="{{ fila['deporte'] }}"
+                                data-nivel="{{ fila['nivel'] }}">
+                                <td class="py-3.5 px-4 text-slate-400 font-mono text-xs">
+                                    {{ fila['id'] }}
+                                </td>
+                                <td class="py-3.5 px-4 font-semibold text-slate-900 flex items-center gap-2.5">
+                                    <div class="w-7 h-7 rounded-md bg-navy-50 text-navy-700 font-bold flex items-center justify-center text-xs border border-navy-100">
+                                        {{ fila['nombre'][:1]|upper }}
+                                    </div>
+                                    <span>{{ fila['nombre'] }}</span>
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-600 font-mono">
+                                    {{ fila['cedula'] }}
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-700">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                                        {{ fila['nivel'] }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold
+                                        {% if fila['deporte'] == 'Futbol Sala' or fila['deporte'] == 'Fútbol Sala' %}
+                                            bg-emerald-50 text-emerald-700 border border-emerald-200
+                                        {% elif fila['deporte'] == 'Baloncesto' %}
+                                            bg-amber-50 text-amber-700 border border-amber-200
+                                        {% elif fila['deporte'] == 'Voleibol' %}
+                                            bg-blue-50 text-blue-700 border border-blue-200
+                                        {% elif fila['deporte'] == 'Kickingball' or fila['deporte'] == 'Kikimbol' %}
+                                            bg-purple-50 text-purple-700 border border-purple-200
+                                        {% else %}
+                                            bg-slate-100 text-slate-800 border border-slate-200
+                                        {% endif %}">
+                                        {{ fila['deporte'] }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-500 text-xs">
+                                    {{ fila['fecha'] if fila['fecha'] else 'Reciente' }}
+                                </td>
+                                <td class="py-3.5 px-4 text-right no-print">
+                                    <form action="/admin/eliminar/{{ fila['id'] }}" method="POST" class="inline"
+                                          onsubmit="return confirm('Desea eliminar la inscripcion de {{ fila['nombre'] }}? Se liberara un cupo en {{ fila['deporte'] }}.');">
+                                        <button type="submit"
+                                                class="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md transition-all"
+                                                title="Eliminar inscripcion">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr id="sin-datos-fila">
+                                <td colspan="7" class="py-12 text-center text-slate-400">
+                                    <div class="mb-2">
+                                        <svg class="w-8 h-8 mx-auto text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <p class="font-semibold text-slate-600">No hay inscripciones registradas todavia.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Los estudiantes pueden registrarse desde el portal publico.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr id="sin-resultados-busqueda" class="hidden">
+                                <td colspan="7" class="py-10 text-center text-slate-400">
+                                    <p class="font-semibold text-slate-600">No se encontraron inscripciones con los filtros seleccionados.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- PESTANA 2: CRONOGRAMA DE JUEGOS                           -->
+        <!-- ======================================================== -->
+        <section id="seccion-cronograma" class="space-y-6 {% if tab_activa != 'cronograma' %}hidden{% endif %}">
+            
+            <!-- Header Oficial de Impresión (Solo visible al imprimir o guardar como PDF) -->
+            <div class="print-only mb-4 border-b-2 border-slate-800 pb-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-base font-black text-slate-900 uppercase tracking-tight">U.E.P. Teresiano La Castellana</h1>
+                        <p class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mt-0.5">Coordinación de Educación Física y Deporte • Semana Deportiva 2026</p>
+                    </div>
+                    <div class="text-right text-[10px] text-slate-600">
+                        <span class="font-bold text-slate-900 block">CRONOGRAMA OFICIAL DE COMPETENCIAS</span>
+                        <span>Primaria (07:45 - 10:30) • Receso (10:30 - 11:00) • Bachillerato (11:00 - 01:45)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header Toolbar -->
+            <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm no-print">
+                <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <span class="px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">Matriz Semanal</span>
+                            <h3 class="text-lg font-bold text-slate-900 tracking-tight">
+                                Cuadrícula de Horario de Juegos
+                            </h3>
+                            <!-- BADGE DE ESTADO DE PUBLICACIÓN -->
+                            {% if cronograma_publicado %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm" id="badge-estado-publicado">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                                Estado: Público
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm" id="badge-estado-borrador">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                Estado: Borrador Privado
+                            </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Jornada escolar de 7:45 AM a 1:45 PM. Bloques fijos para Primaria y Bachillerato.
+                            {% if cronograma_publicado %}
+                            <span class="text-emerald-700 font-semibold">• Publicado para estudiantes y representantes.</span>
+                            {% else %}
+                            <span class="text-amber-700 font-semibold">• Oculto en el portal público (Modo Borrador).</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Switch / Botón de Publicación -->
+                        <form action="/toggle_publicacion" method="POST" class="inline">
+                            {% if cronograma_publicado %}
+                            <button type="submit" id="btn-toggle-publicacion"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm cursor-pointer"
+                                    title="Ocultar horario del portal de estudiantes y representantes">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                </svg>
+                                <span>Ocultar Horario</span>
+                            </button>
+                            {% else %}
+                            <button type="submit" id="btn-toggle-publicacion"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-all shadow-sm cursor-pointer active:scale-95"
+                                    title="Publicar horario oficial en el portal para estudiantes y representantes">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span>Publicar Horario Oficial</span>
+                            </button>
+                            {% endif %}
+                        </form>
+
+                        <!-- Auto-Generar Fixture -->
+                        <form action="/generar_cronograma" method="POST" class="inline"
+                              onsubmit="return confirm('Desea generar la Fase Inicial del fixture con los grados y secciones inscritos?');">
+                            <button type="submit" id="btn-auto-generar"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-white bg-navy-800 hover:bg-navy-900 active:scale-95 rounded-lg transition-all shadow-sm cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                <span>Auto-Generar Fixture</span>
+                            </button>
+                        </form>
+
+                        <!-- Siguiente Ronda -->
+                        <form action="/admin/cronograma/siguiente_fase" method="POST" class="inline"
+                              onsubmit="return confirm('Desea generar la Siguiente Ronda del torneo? Se tomaran los ganadores clasificados.');">
+                            <button type="submit" id="btn-siguiente-fase"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 rounded-lg transition-all shadow-sm cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Siguiente Ronda</span>
+                            </button>
+                        </form>
+
+                        <!-- Agregar Juego -->
+                        <button onclick="abrirModalAgregar('', '')" id="btn-agregar-juego"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm cursor-pointer">
+                            <svg class="w-4 h-4 text-navy-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span>Agregar Juego</span>
+                        </button>
+
+                        <!-- Imprimir / Guardar PDF -->
+                        <button onclick="window.print()" id="btn-print-schedule"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm cursor-pointer"
+                                title="Imprimir en formato horizontal o guardar como PDF oficial">
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>Imprimir / Guardar PDF</span>
+                        </button>
+
+                        <!-- Exportar CSV -->
+                        <a href="/admin/exportar_cronograma" id="btn-export-schedule-csv"
+                           class="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg transition-all shadow-sm">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.5L19 7.5V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Exportar CSV</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leyenda Visual de Bloques -->
+            <div class="flex flex-wrap items-center gap-2 text-xs no-print">
+                <span class="text-slate-500 font-semibold">Franjas de Juego:</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-800 font-bold text-[11px]">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    07:45 AM - 10:30 AM: Primaria
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-300 text-slate-700 font-bold text-[11px]">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    10:30 AM - 11:00 AM: Receso
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-800 font-bold text-[11px]">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
+                    </svg>
+                    11:00 AM - 01:45 PM: Bachillerato
+                </span>
+            </div>
+
+            <!-- CUADRICULA DE HORARIO SEMANAL -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden timetable-container">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse timetable-grid min-w-[880px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-700 font-extrabold uppercase tracking-wider text-[11px] border-b border-slate-300">
+                                <th class="py-3 px-3 w-[165px] border-r border-slate-200 text-center">
+                                    <span class="flex items-center justify-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Bloque Horario
+                                    </span>
+                                </th>
+                                {% for d in dias %}
+                                <th class="py-3 px-3 border-r border-slate-200 last:border-r-0 text-center">
+                                    <span class="font-extrabold">{{ d|upper }}</span>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-xs">
+                            {% for fila in matriz_cronograma %}
+                            <tr class="transition-colors hover:bg-slate-50/50 
+                                {% if fila.etapa == 'Primaria' %}bg-blue-50/20
+                                {% elif fila.etapa == 'Receso' %}bg-slate-100/60
+                                {% elif fila.etapa == 'Bachillerato' %}bg-indigo-50/20
+                                {% endif %}">
+                                
+                                <!-- Celda: Bloque Horario -->
+                                <td class="py-3 px-3 align-top border-r border-slate-200 bg-slate-50/90 font-medium text-slate-700 w-[165px]">
+                                    <div class="font-mono font-bold text-slate-900 text-xs leading-tight">
+                                        {{ fila.etiqueta }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 font-medium mt-1">
+                                        {{ fila.nombre_bloque }}
+                                    </div>
+                                    {% if fila.badge %}
+                                    <div class="mt-1.5">
+                                        <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold leading-tight
+                                            {% if fila.etapa == 'Primaria' %}bg-blue-100 text-blue-800 border border-blue-200
+                                            {% elif fila.etapa == 'Receso' %}bg-slate-200 text-slate-700 border border-slate-300
+                                            {% elif fila.etapa == 'Bachillerato' %}bg-indigo-100 text-indigo-800 border border-indigo-200
+                                            {% else %}bg-slate-200 text-slate-700{% endif %}">
+                                            {{ fila.badge }}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Celdas de Lunes a Viernes -->
+                                {% for dia in dias %}
+                                {% set partidos = fila.celdas[dia] %}
+                                <td class="py-2 px-2.5 align-top border-r border-slate-200 last:border-r-0 min-h-[90px] relative group/celda">
+                                    {% if partidos %}
+                                        <div class="space-y-2.5">
+                                            {% for p in partidos %}
+                                            <div class="timetable-card bg-white border {% if p.estado == 'finalizado' and p.ganador %}border-emerald-300 bg-emerald-50/20{% else %}border-slate-200{% endif %} rounded-lg p-2.5 shadow-sm hover:shadow transition relative group/card" id="card-partido-{{ p.id }}" data-partido-id="{{ p.id }}">
+                                                <!-- Delete button -->
+                                                <form action="/admin/cronograma/eliminar/{{ p.id }}" method="POST" class="inline absolute top-1.5 right-1.5 no-print"
+                                                      onsubmit="return confirm('Desea eliminar este juego del horario?');">
+                                                    <button type="submit"
+                                                            class="w-5 h-5 rounded bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-bold transition cursor-pointer"
+                                                            title="Eliminar partido de este bloque">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+
+                                                <!-- Disciplina + Fase -->
+                                                <div class="pr-5 mb-1.5 flex flex-wrap items-center gap-1.5">
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold
+                                                        {% if p.disciplina == 'Futbol Sala' or p.disciplina == 'Fútbol Sala' or p.disciplina == 'Futbol' or p.disciplina == 'Fútbol' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+                                                        {% elif p.disciplina == 'Baloncesto' or p.disciplina == 'Basquet' or p.disciplina == 'Básquet' %}bg-amber-50 text-amber-700 border border-amber-200
+                                                        {% elif p.disciplina == 'Voleibol' %}bg-blue-50 text-blue-700 border border-blue-200
+                                                        {% elif p.disciplina == 'Kikimbol' or p.disciplina == 'Kickingball' %}bg-purple-50 text-purple-700 border border-purple-200
+                                                        {% elif p.disciplina == 'Atletismo' %}bg-rose-50 text-rose-700 border border-rose-200
+                                                        {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
+                                                        {{ p.disciplina }}
+                                                    </span>
+
+                                                    {% if p.fase %}
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                                        {{ p.fase }}
+                                                    </span>
+                                                    {% endif %}
+                                                </div>
+
+                                                <!-- Enfrentamiento -->
+                                                <div class="font-bold text-slate-900 text-xs leading-snug">
+                                                    {{ p.enfrentamiento }}
+                                                </div>
+
+                                                <!-- Cancha -->
+                                                <div class="text-[10px] font-medium text-slate-500 mt-1 flex items-center gap-1">
+                                                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    <span class="truncate">{{ p.cancha }}</span>
+                                                </div>
+
+                                                <!-- SISTEMA DE GANADOR -->
+                                                <div class="area-ganador-partido" data-id="{{ p.id }}">
+                                                    {% if p.estado == 'pendiente' or not p.ganador %}
+                                                        {% set equipos = p.enfrentamiento.split(' vs ') %}
+                                                        {% if equipos|length == 2 %}
+                                                        <div class="mt-2.5 pt-2 border-t border-slate-100 no-print contenedor-botones-ganador">
+                                                            <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                                                Seleccionar Ganador:
+                                                            </span>
+                                                            <div class="grid grid-cols-2 gap-1.5">
+                                                                <form action="/admin/cronograma/marcar_ganador/{{ p.id }}" method="POST" class="form-marcar-ganador inline w-full" data-partido-id="{{ p.id }}" data-equipo="{{ equipos[0].strip() }}">
+                                                                    <input type="hidden" name="ganador" value="{{ equipos[0].strip() }}">
+                                                                    <button type="submit"
+                                                                            class="w-full py-1 px-1.5 bg-navy-50 hover:bg-navy-800 text-navy-700 hover:text-white border border-navy-200 hover:border-navy-800 rounded text-[10px] font-extrabold transition truncate text-center cursor-pointer active:scale-95 flex items-center justify-center gap-1"
+                                                                            title="Declarar ganador a {{ equipos[0].strip() }}">
+                                                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                                                        </svg>
+                                                                        <span class="truncate">{{ equipos[0].strip() }}</span>
+                                                                    </button>
+                                                                </form>
+                                                                <form action="/admin/cronograma/marcar_ganador/{{ p.id }}" method="POST" class="form-marcar-ganador inline w-full" data-partido-id="{{ p.id }}" data-equipo="{{ equipos[1].strip() }}">
+                                                                    <input type="hidden" name="ganador" value="{{ equipos[1].strip() }}">
+                                                                    <button type="submit"
+                                                                            class="w-full py-1 px-1.5 bg-navy-50 hover:bg-navy-800 text-navy-700 hover:text-white border border-navy-200 hover:border-navy-800 rounded text-[10px] font-extrabold transition truncate text-center cursor-pointer active:scale-95 flex items-center justify-center gap-1"
+                                                                            title="Declarar ganador a {{ equipos[1].strip() }}">
+                                                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                                                        </svg>
+                                                                        <span class="truncate">{{ equipos[1].strip() }}</span>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <div class="mt-2.5 pt-2 border-t border-emerald-100 flex items-center justify-between gap-1 text-[10px] contenedor-badge-ganador">
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                                                </svg>
+                                                                Ganador: {{ p.ganador }}
+                                                            </span>
+                                                            <form action="/admin/cronograma/revertir_resultado/{{ p.id }}" method="POST" class="form-revertir-resultado inline no-print" data-partido-id="{{ p.id }}"
+                                                                  onsubmit="return confirm('Desea revertir este resultado a pendiente?');">
+                                                                <button type="submit" class="text-[9px] text-slate-400 hover:text-rose-600 underline font-medium cursor-pointer" title="Revertir resultado">
+                                                                    Revertir
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+
+                                            <!-- Add another game button -->
+                                            <button onclick="abrirModalAgregar('{{ dia }}', '{{ fila.etiqueta }}')"
+                                                    class="w-full py-1 text-center text-[10px] font-semibold text-slate-400 hover:text-navy-700 hover:bg-navy-50/50 rounded border border-dashed border-slate-200 hover:border-navy-300 transition-all opacity-0 group-hover/celda:opacity-100 no-print cursor-pointer">
+                                                + Agregar otro juego
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <!-- Empty cell -->
+                                        <div class="h-full min-h-[65px] flex items-center justify-center">
+                                            {% if fila.etapa != 'Receso' %}
+                                            <button onclick="abrirModalAgregar('{{ dia }}', '{{ fila.etiqueta }}')"
+                                                    class="w-full h-full min-h-[60px] flex flex-col items-center justify-center text-slate-300 hover:text-navy-700 hover:bg-navy-50/40 rounded-lg border border-dashed border-transparent hover:border-navy-300 transition-all text-xs font-semibold group/btn no-print cursor-pointer"
+                                                    title="Agregar juego el {{ dia }} a las {{ fila.etiqueta }}">
+                                                <svg class="w-4 h-4 text-slate-300 group-hover/btn:text-navy-600 transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                </svg>
+                                                <span class="text-[10px] opacity-0 group-hover/btn:opacity-100 text-navy-700 font-bold transition">Agregar</span>
+                                            </button>
+                                            {% else %}
+                                            <span class="text-slate-300 text-[10px] font-medium select-none">Receso</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: AGREGAR JUEGO -->
+    <div id="modal-agregar-partido" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg border border-slate-200 shadow-2xl max-w-lg w-full p-6 animate-scaleIn">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-navy-50 text-navy-700 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-extrabold text-slate-900">Programar Juego</h4>
+                        <p class="text-xs text-slate-500">Asigna un enfrentamiento a un dia y bloque horario.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-agregar-partido').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="/admin/cronograma/agregar" method="POST" class="mt-5 space-y-4" id="form-agregar-partido">
+                <!-- Disciplina y Cancha -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Disciplina Deportiva</label>
+                        <select name="disciplina" id="modal-disciplina" required
+                                class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                            <option value="">Selecciona disciplina...</option>
+                            {% for dep in deportes %}
+                                <option value="{{ dep }}">{{ dep }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Cancha Asignada</label>
+                        <select name="cancha" id="modal-cancha" required
+                                class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                            <option value="Cancha Techada">Cancha Techada</option>
+                            <option value="Cancha Multiple">Cancha Multiple</option>
+                            <option value="Cancha Central">Cancha Central</option>
+                            <option value="Campo Deportivo">Campo Deportivo</option>
+                            <option value="Pista de Velocidad">Pista de Velocidad</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dia y Bloque -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Día de la Semana</label>
+                        <select name="dia" id="modal-dia" required
+                                class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                            <option value="aleatorio">Asignar dia aleatorio</option>
+                            {% for d in dias %}
+                                <option value="{{ d }}">{{ d }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Bloque Horario</label>
+                        <select name="bloque_horario" id="modal-bloque" required
+                                class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                            <option value="aleatorio">Bloque automatico segun etapa</option>
+                            <optgroup label="Franja Primaria (07:45 AM - 10:30 AM)">
+                                <option value="07:45 AM - 08:40 AM">07:45 AM - 08:40 AM (Bloque 1 Primaria)</option>
+                                <option value="08:40 AM - 09:35 AM">08:40 AM - 09:35 AM (Bloque 2 Primaria)</option>
+                                <option value="09:35 AM - 10:30 AM">09:35 AM - 10:30 AM (Bloque 3 Primaria)</option>
+                            </optgroup>
+                            <optgroup label="Franja Bachillerato (11:00 AM - 01:45 PM)">
+                                <option value="11:00 AM - 11:55 AM">11:00 AM - 11:55 AM (Bloque 1 Bachillerato)</option>
+                                <option value="11:55 AM - 12:50 PM">11:55 AM - 12:50 PM (Bloque 2 Bachillerato)</option>
+                                <option value="12:50 PM - 01:45 PM">12:50 PM - 01:45 PM (Bloque 3 Bachillerato)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Equipos -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Equipos en Contienda (Grado/Año y Sección)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" name="equipo1" id="modal-equipo1" placeholder="Equipo 1 (Ej: 3er Ano B)"
+                               class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                        <input type="text" name="equipo2" id="modal-equipo2" placeholder="Equipo 2 (Ej: 5to Ano A)"
+                               class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-900">
+                    </div>
+                    <div class="mt-2">
+                        <input type="text" name="enfrentamiento" id="modal-enfrentamiento" placeholder="O nombre alternativo (Ej: Final Relevo 4x100m)"
+                               class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-navy-800/15 focus:border-navy-700 text-slate-700">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="document.getElementById('modal-agregar-partido').classList.add('hidden')"
+                            class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 text-xs font-bold text-white bg-navy-800 hover:bg-navy-900 rounded-lg transition-all shadow-sm cursor-pointer">
+                        Guardar en Cuadricula
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        function abrirModalAgregar(dia, bloque) {
+            const modal = document.getElementById('modal-agregar-partido');
+            const selectDia = document.getElementById('modal-dia');
+            const selectBloque = document.getElementById('modal-bloque');
+            
+            if (dia && selectDia) {
+                selectDia.value = dia;
+            }
+            if (bloque && selectBloque) {
+                let encontrado = false;
+                for (let i = 0; i < selectBloque.options.length; i++) {
+                    if (selectBloque.options[i].value === bloque) {
+                        selectBloque.selectedIndex = i;
+                        encontrado = true;
+                        break;
+                    }
+                }
+            }
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function cambiarPestana(pestana) {
+            const secInscritos = document.getElementById('seccion-inscritos');
+            const secCronograma = document.getElementById('seccion-cronograma');
+            const btnInscritos = document.getElementById('tab-btn-inscritos');
+            const btnCronograma = document.getElementById('tab-btn-cronograma');
+
+            if (pestana === 'inscritos') {
+                if (secInscritos) secInscritos.classList.remove('hidden');
+                if (secCronograma) secCronograma.classList.add('hidden');
+
+                if (btnInscritos) btnInscritos.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 shadow-sm bg-white text-slate-900";
+                if (btnCronograma) btnCronograma.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', 'inscritos');
+                    window.history.replaceState({}, '', url);
+                } catch(e) {}
+            } else {
+                if (secInscritos) secInscritos.classList.add('hidden');
+                if (secCronograma) secCronograma.classList.remove('hidden');
+
+                if (btnCronograma) btnCronograma.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 shadow-sm bg-white text-slate-900";
+                if (btnInscritos) btnInscritos.className = "px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', 'cronograma');
+                    window.history.replaceState({}, '', url);
+                } catch(e) {}
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('tab') === 'cronograma') {
+                cambiarPestana('cronograma');
+            }
+        });
+
+        function filtrarTabla() {
+            const busqueda = document.getElementById('busqueda').value.toLowerCase().trim();
+            const filtroDeporte = document.getElementById('filtro-deporte').value;
+            const filtroNivel = document.getElementById('filtro-nivel').value;
+            const filas = document.querySelectorAll('.fila-dato');
+            const sinResultados = document.getElementById('sin-resultados-busqueda');
+
+            let visibles = 0;
+
+            filas.forEach(fila => {
+                const nombre = fila.getAttribute('data-nombre') || '';
+                const cedula = fila.getAttribute('data-cedula') || '';
+                const deporte = fila.getAttribute('data-deporte') || '';
+                const nivel = fila.getAttribute('data-nivel') || '';
+
+                const coincideTexto = busqueda === '' || nombre.includes(busqueda) || cedula.includes(busqueda) || deporte.toLowerCase().includes(busqueda);
+                const coincideDeporte = filtroDeporte === '' || deporte === filtroDeporte;
+                const coincideNivel = filtroNivel === '' || nivel === filtroNivel;
+
+                if (coincideTexto && coincideDeporte && coincideNivel) {
+                    fila.style.display = '';
+                    visibles++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            if (sinResultados) {
+                if (visibles === 0 && filas.length > 0) {
+                    sinResultados.classList.remove('hidden');
+                } else {
+                    sinResultados.classList.add('hidden');
+                }
+            }
+        }
+
+        // Winner persistence with AJAX
+        document.addEventListener('submit', async function(e) {
+            const formGanador = e.target.closest('.form-marcar-ganador');
+            if (formGanador) {
+                e.preventDefault();
+                const partidoId = formGanador.getAttribute('data-partido-id');
+                const card = document.getElementById('card-partido-' + partidoId);
+                const area = card ? card.querySelector('.area-ganador-partido') : null;
+
+                const formData = new FormData(formGanador);
+                try {
+                    const resp = await fetch(formGanador.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const res = await resp.json();
+                    if (res.success) {
+                        if (card) {
+                            card.classList.remove('border-slate-200');
+                            card.classList.add('border-emerald-300', 'bg-emerald-50/20');
+                        }
+                        if (area) {
+                            area.innerHTML = `
+                                <div class="mt-2.5 pt-2 border-t border-emerald-100 flex items-center justify-between gap-1 text-[10px] contenedor-badge-ganador animate-fadeIn">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                        </svg>
+                                        Ganador: ${res.ganador}
+                                    </span>
+                                    <form action="/admin/cronograma/revertir_resultado/${partidoId}" method="POST" class="form-revertir-resultado inline no-print" data-partido-id="${partidoId}" onsubmit="return confirm('Desea revertir este resultado a pendiente?');">
+                                        <button type="submit" class="text-[9px] text-slate-400 hover:text-rose-600 underline font-medium cursor-pointer" title="Revertir resultado">
+                                            Revertir
+                                        </button>
+                                    </form>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        alert(res.error || 'Error al guardar ganador');
+                    }
+                } catch(err) {
+                    formGanador.submit();
+                }
+                return;
+            }
+
+            const formRevertir = e.target.closest('.form-revertir-resultado');
+            if (formRevertir) {
+                e.preventDefault();
+                const partidoId = formRevertir.getAttribute('data-partido-id');
+                try {
+                    const resp = await fetch(formRevertir.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const res = await resp.json();
+                    if (res.success) {
+                        window.location.reload();
+                    } else {
+                        formRevertir.submit();
+                    }
+                } catch(err) {
+                    formRevertir.submit();
+                }
+            }
+        });
+
+        // Auto-dismiss flash messages
+        setTimeout(() => {
+            const container = document.getElementById('flash-container');
+            if (container) {
+                container.querySelectorAll('[class*="p-4"]').forEach(el => {
+                    el.style.transition = 'opacity 0.3s ease';
+                    el.style.opacity = '0';
+                    setTimeout(() => el.remove(), 300);
+                });
+            }
+        }, 6000);
+    </script>
+</body>
+</html>
